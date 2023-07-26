@@ -1,0 +1,133 @@
+name: Preflight
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Resolve versions
+        uses: perxhealth/tool-versions-action@v1
+        id: versions
+
+      - name: Node setup
+        uses: perxhealth/setup-pnpm-action@v1
+        with:
+          node-version: ${{ steps.versions.outputs.nodejs_version }}
+          pnpm-version: ${{ steps.versions.outputs.pnpm_version }}
+          install-deps: true
+
+      - name: ⚡️ Vitest
+        run: pnpm test
+
+  coverage:
+    name: test coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Resolve versions
+        uses: perxhealth/tool-versions-action@v1
+        id: versions
+
+      - name: Node setup
+        uses: perxhealth/setup-pnpm-action@v1
+        with:
+          node-version: ${{ steps.versions.outputs.nodejs_version }}
+          pnpm-version: ${{ steps.versions.outputs.pnpm_version }}
+          install-deps: true
+
+      - name: ⚡️ Vitest Coverage
+        run: pnpm coverage
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Resolve versions
+        uses: perxhealth/tool-versions-action@v1
+        id: versions
+
+      - name: Node setup
+        uses: perxhealth/setup-pnpm-action@v1
+        with:
+          node-version: ${{ steps.versions.outputs.nodejs_version }}
+          pnpm-version: ${{ steps.versions.outputs.pnpm_version }}
+          install-deps: true
+
+      - name: ⬣ ESLint
+        run: pnpm lint
+
+  format:
+    name: formatting check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Resolve versions
+        uses: perxhealth/tool-versions-action@v1
+        id: versions
+
+      - name: Node setup
+        uses: perxhealth/setup-pnpm-action@v1
+        with:
+          node-version: ${{ steps.versions.outputs.nodejs_version }}
+          pnpm-version: ${{ steps.versions.outputs.pnpm_version }}
+          install-deps: true
+
+      - name: 💄Prettier
+        run: pnpm format-check
+
+  typecheck:
+    name: type check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Resolve versions
+        uses: perxhealth/tool-versions-action@v1
+        id: versions
+
+      - name: Node setup
+        uses: perxhealth/setup-pnpm-action@v1
+        with:
+          node-version: ${{ steps.versions.outputs.nodejs_version }}
+          pnpm-version: ${{ steps.versions.outputs.pnpm_version }}
+          install-deps: true
+
+      - name: ʦ Compile
+        run: pnpm tsc
+
+  build:
+    name: dry build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Resolve versions
+        uses: perxhealth/tool-versions-action@v1
+        id: versions
+
+      - name: Node setup
+        uses: perxhealth/setup-pnpm-action@v1
+        with:
+          node-version: ${{ steps.versions.outputs.nodejs_version }}
+          pnpm-version: ${{ steps.versions.outputs.pnpm_version }}
+          install-deps: true
+
+      - name: 📦 Generate Dry Release
+        run: pnpm build
