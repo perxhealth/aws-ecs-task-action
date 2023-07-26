@@ -5,7 +5,7 @@ branding:
   color: blue
 inputs:
   task-definition:
-    description: Path on local disk at which your .tpl.json file exists
+    description: Path on local disk at which your .json task definition exists
     required: true
 outputs:
   exit-code:
