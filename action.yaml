@@ -1,0 +1,15 @@
+name: AWS ECS Task for GitHub Actions
+description: Run and await an ECS Task with useful outputs
+branding:
+  icon: hard-drive
+  color: blue
+inputs:
+  task-definition:
+    description: Path on local disk at which your .tpl.json file exists
+    required: true
+outputs:
+  exit-code:
+    description: Equal to the ECS task's exit code
+runs:
+  using: node16
+  main: dist/index.js
