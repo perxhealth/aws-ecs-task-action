@@ -51,8 +51,11 @@ async function run(): Promise<void> {
 
     // take action on tasks successfully requested
     if (tasks) {
-      // grab the task ARNs
-      const taskArns = tasks.map((task) => task.taskArn!)
+      // build a list of all the task's arns, so we can target them
+      const taskArns = tasks.reduce<string[]>((arns, task) => {
+        if (task.taskArn) arns.push(task.taskArn)
+        return arns
+      }, [])
 
       // wait for tasks to begin running
       await core.group("Waiting for RUNNING state...", async () => {
