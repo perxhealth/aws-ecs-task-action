@@ -4,7 +4,24 @@ branding:
   icon: hard-drive
   color: blue
 inputs:
-  task-definition:
+  perx_env:
+    type: choice
+    description: Nominate the environment in which we're deploying
+    required: true
+    options:
+      - dev
+      - qa
+      - demo
+      - staging
+      - prod
+  perx_region:
+    type: choice
+    description: Nominate the region in which we're deploying
+    required: true
+    options:
+      - au
+      - us
+  definition:
     description: Path on local disk at which your .json task definition exists
     required: true
 outputs:
