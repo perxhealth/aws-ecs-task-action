@@ -6,6 +6,8 @@ import { backOff } from "exponential-backoff"
 
 import {
   ECS,
+  Task,
+  TaskDefinition,
   DescribeTasksCommand,
   DescribeTasksCommandOutput,
 } from "@aws-sdk/client-ecs"
@@ -47,37 +49,59 @@ async function run(): Promise<void> {
     // run the nominated task and collect the results
     const ecs = new ECS({ region: process.env.AWS_REGION })
 
-    // read task definition from local disk and register it with aws
-    const definition = fs.readFileSync(taskDefPath).toString()
-    const { taskDefinition } = await ecs.registerTaskDefinition(
-      JSON.parse(definition)
-    )
+    // mutable references to the new task definition and
+    // each of the resultant tasks and task descriptions
+    let taskDefinition: TaskDefinition
+    let taskDescriptions: DescribeTasksCommandOutput
 
-    // start the containers
-    const { tasks, failures } = await ecs.runTask({
-      cluster: "dev",
-      taskDefinition: taskDefinition?.taskDefinitionArn,
-      networkConfiguration: {
-        awsvpcConfiguration: {
-          securityGroups: ["sg-027a4bdaa804a13dd"],
-          subnets: [
-            "subnet-06a351d84c3c1734f",
-            "subnet-0ec4c58f9d0ec871e",
-            "subnet-08949a30b96c117e2",
-          ],
-        },
-      },
+    let startedTasks: Task[] = []
+
+    // read task definition from local disk and register it with aws
+    await core.group("Registering task definition...", async () => {
+      const source = fs.readFileSync(taskDefPath).toString()
+      await ecs.registerTaskDefinition(JSON.parse(source)).then((result) => {
+        if (result.taskDefinition) {
+          taskDefinition = result.taskDefinition
+          core.setOutput(
+            "task-definition-arn",
+            taskDefinition.taskDefinitionArn
+          )
+        } else {
+          core.setFailed("Could not register task definition")
+        }
+      })
     })
 
-    // log failures if they exist
-    if (failures && failures.length > 0) {
-      core.info(`${failures.length} tasks did not start successfully`)
-    }
+    // start the containers
+    await core.group("Starting tasks...", async () => {
+      const { tasks = [], failures = [] } = await ecs.runTask({
+        cluster: "dev",
+        taskDefinition: taskDefinition?.taskDefinitionArn,
+        networkConfiguration: {
+          awsvpcConfiguration: {
+            securityGroups: ["sg-027a4bdaa804a13dd"],
+            subnets: [
+              "subnet-06a351d84c3c1734f",
+              "subnet-0ec4c58f9d0ec871e",
+              "subnet-08949a30b96c117e2",
+            ],
+          },
+        },
+      })
+
+      core.info(`${tasks.length} tasks have started`)
+      core.setOutput("tasks-started-count", tasks.length)
+
+      core.info(`${failures.length} tasks failed to start`)
+      core.setOutput("tasks-started-failed-count", failures.length)
+
+      startedTasks = tasks
+    })
 
     // take action on tasks successfully requested
-    if (tasks) {
+    if (startedTasks.length > 0) {
       // build a list of all the task's arns, so we can target them
-      const taskArns = tasks.reduce<string[]>((arns, task) => {
+      const taskArns = startedTasks.reduce<string[]>((arns, task) => {
         if (task.taskArn) arns.push(task.taskArn)
         return arns
       }, [])
@@ -88,9 +112,6 @@ async function run(): Promise<void> {
         cluster: "dev",
       })
 
-      // cached reference to when we last inspected the tasks
-      let description: DescribeTasksCommandOutput
-
       // wait until all tasks have completed running,
       // regardless of success or failure
       await core.group(
@@ -99,9 +120,9 @@ async function run(): Promise<void> {
           taskArns.map(core.info)
           await backOff(
             async () => {
-              description = await ecs.send(describeCommand)
+              taskDescriptions = await ecs.send(describeCommand)
 
-              const isStopped = description.tasks?.every(
+              const isStopped = taskDescriptions.tasks?.every(
                 (task) => task.lastStatus === "STOPPED"
               )
 
@@ -120,12 +141,12 @@ async function run(): Promise<void> {
       // results and fail/pass the job accordingly
       await core.group("Resolving results of STOPPED tasks...", async () => {
         // Determine success by whether every task's container(s) exited with code 0
-        const containers = description.tasks?.flatMap((task) => task.containers)
-        const isSuccess = containers?.every(
-          (container) => container?.exitCode === 0
+        taskDescriptions.tasks = taskDescriptions.tasks || []
+        const containers = taskDescriptions.tasks.flatMap(
+          (task) => task.containers || []
         )
 
-        if (isSuccess) {
+        if (containers.every((container) => container.exitCode === 0)) {
           core.info("All tasks completed successfully!")
         } else {
           core.setFailed("Some tasks exited with a non 0 code")
