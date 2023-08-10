@@ -106,6 +106,9 @@ async function run(): Promise<void> {
         return arns
       }, [])
 
+      // set task arns as comma delimited string output
+      core.setOutput("task-arns", taskArns.join(","))
+
       // cache the command input we'll use to describe the tasks
       const describeCommand = new DescribeTasksCommand({
         tasks: taskArns,
