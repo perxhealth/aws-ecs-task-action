@@ -1,0 +1,51 @@
+{
+	"family": "dev-perx-api",
+	"cpu": "512",
+	"memory": "1024",
+	"networkMode": "awsvpc",
+	"executionRoleArn": "arn:aws:iam::721636788304:role/ecs-task-dev-ap-southeast-2",
+	"taskRoleArn": "arn:aws:iam::721636788304:role/ecs-runner-dev-ap-southeast-2",
+	"requiresCompatibilities": [
+		"FARGATE"
+	],
+	"containerDefinitions": [
+		{
+			"command": [
+				"echo",
+				"foo"
+			],
+			"essential": true,
+			"image": "alpine:latest",
+			"memoryReservation": 1024,
+			"memory": 1024,
+			"name": "perx-api",
+			"portMappings": [
+				{
+					"containerPort": 8000
+				}
+			],
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/dev/perx-api",
+					"awslogs-region": "ap-southeast-2",
+					"awslogs-stream-prefix": "perx-api"
+				}
+			},
+			"environment": [
+				{
+					"name": "NODE_ENV",
+					"value": "production"
+				},
+				{
+					"name": "BASE_URL",
+					"value": "https://api-au.dev.cloud.perxhealth.com/"
+				},
+				{
+					"name": "NO_FEATURE_FLAG",
+					"value": "true"
+				}
+			]
+		}
+	]
+}

@@ -25,8 +25,14 @@ inputs:
     description: Path on local disk at which your .json task definition exists
     required: true
 outputs:
-  exit-code:
-    description: Equal to the ECS task's exit code
+  task-definition-arn:
+    description: Provides the ARN of the resultant ECS Task Definition
+  task-arns:
+    description: Provides the ARNs of all ECS tasks which were started as a comma delimited string
+  tasks-started-count:
+    description: Produces how many ECS tasks were successfully started
+  tasks-started-failed-count:
+    description: Produces how many ECS tasks failed to start
 runs:
   using: node16
   main: dist/index.js
