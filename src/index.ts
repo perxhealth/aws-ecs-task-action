@@ -12,6 +12,33 @@ import {
   DescribeTasksCommandOutput,
 } from "@aws-sdk/client-ecs"
 
+interface WaiterParams {
+  client: ECS
+  cluster: string
+  taskArns: string[]
+}
+
+async function waitUntilTasksStopped(params: WaiterParams): Promise<void> {
+  const taskDescriptions = await params.client.send(
+    new DescribeTasksCommand({
+      tasks: params.taskArns,
+      cluster: params.cluster,
+    })
+  )
+
+  return new Promise((resolve, reject) => {
+    const isStopped = taskDescriptions.tasks?.every(
+      (task) => task.lastStatus === "STOPPED"
+    )
+
+    if (isStopped) {
+      resolve()
+    } else {
+      reject()
+    }
+  })
+}
+
 async function run(): Promise<void> {
   try {
     // retrieve all required inputs
@@ -109,33 +136,14 @@ async function run(): Promise<void> {
       // set task arns as comma delimited string output
       core.setOutput("task-arns", taskArns.join(","))
 
-      // cache the command input we'll use to describe the tasks
-      const describeCommand = new DescribeTasksCommand({
-        tasks: taskArns,
-        cluster: "dev",
-      })
-
       // wait until all tasks have completed running,
       // regardless of success or failure
       await core.group(
         "Waiting for STOPPED state on all tasks...",
         async () => {
           taskArns.map(core.info)
-          await backOff(
-            async () => {
-              taskDescriptions = await ecs.send(describeCommand)
-
-              const isStopped = taskDescriptions.tasks?.every(
-                (task) => task.lastStatus === "STOPPED"
-              )
-
-              if (isStopped) {
-                return Promise.resolve()
-              } else {
-                return Promise.reject()
-              }
-            },
-            { maxDelay: 10000, startingDelay: 10000, delayFirstAttempt: true }
+          await backOff(() =>
+            waitUntilTasksStopped({ client: ecs, cluster: "dev", taskArns })
           )
         }
       )
