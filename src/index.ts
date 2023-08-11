@@ -73,14 +73,9 @@ async function run(): Promise<void> {
     )
     */
 
-    // run the nominated task and collect the results
     const ecs = new ECS({ region: process.env.AWS_REGION })
-
-    // mutable references to the new task definition and
-    // each of the resultant tasks and task descriptions
     let taskDefinition: TaskDefinition
     let taskDescriptions: DescribeTasksCommandOutput
-
     let startedTasks: Task[] = []
 
     // read task definition from local disk and register it with aws

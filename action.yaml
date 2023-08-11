@@ -6,7 +6,7 @@ branding:
 inputs:
   perx_env:
     type: choice
-    description: Nominate the environment in which we're deploying
+    description: Nominate the environment (cluster) in which we're running the task
     required: true
     options:
       - dev
