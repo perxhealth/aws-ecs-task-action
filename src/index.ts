@@ -11,11 +11,7 @@ import {
   DescribeTasksCommand,
 } from "@aws-sdk/client-ecs"
 
-import {
-  CloudWatchLogsClient,
-  GetLogEventsCommand,
-  CreateLogStreamCommand,
-} from "@aws-sdk/client-cloudwatch-logs"
+import { tailTaskLogs } from "./logs"
 
 interface WaiterParams {
   client: ECS
@@ -44,67 +40,6 @@ async function waitUntilTasksStopped(params: WaiterParams): Promise<void> {
   })
 }
 
-interface TailLogsParams {
-  cursor?: string
-  streamPrefix?: string
-  logStreamExists?: boolean
-  groupName: string
-  taskArn: string
-}
-
-async function tailTaskLogs(params: TailLogsParams): Promise<void> {
-  const {
-    cursor,
-    streamPrefix,
-    groupName,
-    taskArn,
-    logStreamExists = false,
-  } = params
-
-  const cloudwatch = new CloudWatchLogsClient({ region: "ap-southeast-2" })
-
-  const taskId = taskArn.split("/").at(-1)
-  const streamName = streamPrefix ? `${streamPrefix}/${taskId}` : taskId
-
-  // eagerly create the projected log stream if necessary
-  if (!logStreamExists) {
-    try {
-      await cloudwatch.send(
-        new CreateLogStreamCommand({
-          logStreamName: streamName,
-          logGroupName: groupName,
-        })
-      )
-    } catch (e) {
-      // doesn't matter
-    }
-  }
-
-  const logs = await cloudwatch.send(
-    new GetLogEventsCommand({
-      startFromHead: true,
-      logStreamName: streamName,
-      logGroupName: groupName,
-      nextToken: cursor,
-    })
-  )
-
-  if (logs.events) {
-    for (const event of logs.events) {
-      console.log("LOG: ", event.message)
-    }
-  }
-
-  if (logs.nextForwardToken) {
-    setTimeout(tailTaskLogs, 2000, {
-      ...params,
-      logStreamExists: true,
-      cursor: logs.nextForwardToken,
-    })
-  }
-
-  return Promise.resolve()
-}
 
 async function run(): Promise<void> {
   try {
@@ -178,12 +113,15 @@ async function run(): Promise<void> {
         },
       })
 
-      core.info(`${tasks.length} tasks have started`)
+      if (tasks.length > 0 && failures.length === 0) {
+        core.info("All tasks started successfully!")
+      } else {
+        core.info(`${tasks.length} tasks have started`)
+        core.info(`${failures.length} tasks failed to start`)
+      }
+
       core.setOutput("tasks-started-count", tasks.length)
-
-      core.info(`${failures.length} tasks failed to start`)
       core.setOutput("tasks-started-failed-count", failures.length)
-
       startedTasks = tasks
     })
 
