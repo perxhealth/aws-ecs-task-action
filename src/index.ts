@@ -141,16 +141,24 @@ async function run(): Promise<void> {
         taskArns.map(core.info)
 
         core.info("========== TASK LOGS ==========")
+
+        // prepare an abort controller to toggle off CloudWatch tailing
+        const logController = new AbortController()
+
         tailTaskLogs({
           groupName: "/ecs/dev/perx-api",
           streamPrefix: "perx-api",
           taskName: "perx-api",
           taskArn: taskArns[0],
+          signal: logController.signal,
         })
 
         await backOff(() =>
           waitUntilTasksStopped({ client: ecs, cluster: "dev", taskArns })
         )
+
+        // no longer poll for logs and let the process exit
+        logController.abort()
       })
 
       // all tasks have stopped, so we need to inspect the

@@ -11,6 +11,7 @@ interface TailLogsParams {
   groupName: string
   taskName: string
   taskArn: string
+  signal: AbortSignal
 }
 
 export async function tailTaskLogs(params: TailLogsParams): Promise<void> {
@@ -20,6 +21,7 @@ export async function tailTaskLogs(params: TailLogsParams): Promise<void> {
     groupName,
     taskArn,
     taskName,
+    signal,
     logStreamExists = false,
   } = params
 
@@ -59,15 +61,15 @@ export async function tailTaskLogs(params: TailLogsParams): Promise<void> {
   }
 
   if (logs.nextForwardToken) {
-    setTimeout(
-      () =>
+    setTimeout(() => {
+      if (!signal.aborted) {
         tailTaskLogs({
           ...params,
           logStreamExists: true,
           cursor: logs.nextForwardToken,
-        }),
-      2000
-    )
+        })
+      }
+    }, 2000)
   }
 
   return Promise.resolve()
