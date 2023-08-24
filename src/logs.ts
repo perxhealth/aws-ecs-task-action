@@ -9,6 +9,7 @@ interface TailLogsParams {
   streamPrefix?: string
   logStreamExists?: boolean
   groupName: string
+  taskName: string
   taskArn: string
 }
 
@@ -18,13 +19,15 @@ export async function tailTaskLogs(params: TailLogsParams): Promise<void> {
     streamPrefix,
     groupName,
     taskArn,
+    taskName,
     logStreamExists = false,
   } = params
 
   const cloudwatch = new CloudWatchLogsClient({ region: "ap-southeast-2" })
 
   const taskId = taskArn.split("/").at(-1)
-  const streamName = streamPrefix ? `${streamPrefix}/${taskId}` : taskId
+  const taskSuffix = `${taskName}/${taskId}`
+  const streamName = streamPrefix ? `${streamPrefix}/${taskSuffix}` : taskSuffix
 
   // eagerly create the projected log stream if necessary
   if (!logStreamExists) {
@@ -56,11 +59,15 @@ export async function tailTaskLogs(params: TailLogsParams): Promise<void> {
   }
 
   if (logs.nextForwardToken) {
-    setTimeout(tailTaskLogs, 2000, {
-      ...params,
-      logStreamExists: true,
-      cursor: logs.nextForwardToken,
-    })
+    setTimeout(
+      () =>
+        tailTaskLogs({
+          ...params,
+          logStreamExists: true,
+          cursor: logs.nextForwardToken,
+        }),
+      2000
+    )
   }
 
   return Promise.resolve()

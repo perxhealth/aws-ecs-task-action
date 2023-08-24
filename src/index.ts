@@ -40,7 +40,6 @@ async function waitUntilTasksStopped(params: WaiterParams): Promise<void> {
   })
 }
 
-
 async function run(): Promise<void> {
   try {
     // retrieve all required inputs
@@ -145,6 +144,7 @@ async function run(): Promise<void> {
         tailTaskLogs({
           groupName: "/ecs/dev/perx-api",
           streamPrefix: "perx-api",
+          taskName: "perx-api",
           taskArn: taskArns[0],
         })
 
