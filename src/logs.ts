@@ -63,15 +63,15 @@ export async function tailTaskLogs(params: TailLogsParams): Promise<void> {
   }
 
   if (logs.nextForwardToken) {
-    setTimeout(() => {
-      if (!signal.aborted) {
+    if (!signal.aborted) {
+      setTimeout(() => {
         tailTaskLogs({
           ...params,
           logStreamExists: true,
           cursor: logs.nextForwardToken,
         })
-      }
-    }, 2000)
+      }, 2000)
+    }
   }
 
   return Promise.resolve()
