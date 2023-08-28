@@ -1,7 +1,2 @@
 # dependencies
 node_modules
-
-# minimal package
-dist/
-!dist/index.js
-!dist/licenses.txt
