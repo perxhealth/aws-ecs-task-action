@@ -19,6 +19,7 @@ async function run(): Promise<void> {
     // retrieve all required inputs
     const env = core.getInput("perx_env", { required: true })
     const region = core.getInput("perx_region", { required: true })
+    const appName = core.getInput("perx_app_name", { required: true })
     const taskDefPath = core.getInput("definition", { required: true })
 
     // ensure the task definition file exists on disk
@@ -118,9 +119,9 @@ async function run(): Promise<void> {
         const logController = new AbortController()
 
         tailTaskLogs({
-          groupName: `/ecs/${env}/perx-api`,
-          streamPrefix: "perx-api",
-          taskName: "perx-api",
+          groupName: `/ecs/${env}/${appName}`,
+          streamPrefix: appName,
+          taskName: appName,
           taskArn: taskArns[0],
           region: awsRegion,
           signal: logController.signal,

@@ -4,6 +4,13 @@ branding:
   icon: hard-drive
   color: blue
 inputs:
+  perx_app_name:
+    type: choice
+    description: In which application context does the task run?
+    required: true
+    options:
+      - perx-api
+      - perx-connect
   perx_env:
     type: choice
     description: Nominate the environment (cluster) in which we're running the task
