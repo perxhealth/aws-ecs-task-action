@@ -31,6 +31,12 @@ inputs:
   definition:
     description: Path on local disk at which your .json task definition exists
     required: true
+  subnets:
+    description: AWS VPC subnets in which the task runs, formatted as a comma delimited string
+    required: false
+  security_groups:
+    description: AWS Security Group's in which the task runs, formatted as a comma delimited string
+    required: false
 outputs:
   task-definition-arn:
     description: Provides the ARN of the resultant ECS Task Definition

@@ -70,17 +70,16 @@ async function run(): Promise<void> {
 
     // start the containers
     await core.group("Starting tasks...", async () => {
+      const securityGroups = core.getInput("security_groups") || ""
+      const subnets = core.getInput("subnets") || ""
+
       const { tasks = [], failures = [] } = await ecs.runTask({
         cluster: env,
         taskDefinition: taskDefinition?.taskDefinitionArn,
         networkConfiguration: {
           awsvpcConfiguration: {
-            securityGroups: ["sg-027a4bdaa804a13dd"],
-            subnets: [
-              "subnet-06a351d84c3c1734f",
-              "subnet-0ec4c58f9d0ec871e",
-              "subnet-08949a30b96c117e2",
-            ],
+            securityGroups: securityGroups.split(","),
+            subnets: subnets.split(","),
           },
         },
       })
