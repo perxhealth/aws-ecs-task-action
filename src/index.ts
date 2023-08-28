@@ -17,10 +17,9 @@ import { waitUntilTasksStopped } from "./util"
 async function run(): Promise<void> {
   try {
     // retrieve all required inputs
-    // const env = core.getInput("perx_env", { required: true })
-    // const region = core.getInput("perx_region", { required: true })
-    // const taskDefPath = core.getInput("definition", { required: true })
-    const taskDefPath = "./task-definition.json"
+    const env = core.getInput("perx_env", { required: true })
+    const region = core.getInput("perx_region", { required: true })
+    const taskDefPath = core.getInput("definition", { required: true })
 
     // ensure the task definition file exists on disk
     assert(
@@ -28,7 +27,6 @@ async function run(): Promise<void> {
       `Path specified in 'task-definition' input does not exist: ${taskDefPath}`
     )
 
-    /*
     // ensure AWS_ACCESS_KEY_ID was picked up from the environment
     assert(
       process.env.AWS_ACCESS_KEY_ID,
@@ -46,9 +44,9 @@ async function run(): Promise<void> {
       process.env.AWS_REGION,
       "`AWS_REGION` is not set in the environment. Has a previous action setup AWS credentials?"
     )
-    */
 
-    const ecs = new ECS({ region: "ap-southeast-2" })
+    const awsRegion = region === "au" ? "ap-southeast-2" : "us-east-2"
+    const ecs = new ECS({ region: awsRegion })
 
     let taskDefinition: TaskDefinition
     let startedTasks: Task[] = []
@@ -124,6 +122,7 @@ async function run(): Promise<void> {
           streamPrefix: "perx-api",
           taskName: "perx-api",
           taskArn: taskArns[0],
+          region: awsRegion,
           signal: logController.signal,
         })
 

@@ -11,6 +11,7 @@ interface TailLogsParams {
   groupName: string
   taskName: string
   taskArn: string
+  region: string
   signal: AbortSignal
 }
 
@@ -22,10 +23,11 @@ export async function tailTaskLogs(params: TailLogsParams): Promise<void> {
     taskArn,
     taskName,
     signal,
+    region,
     logStreamExists = false,
   } = params
 
-  const cloudwatch = new CloudWatchLogsClient({ region: "ap-southeast-2" })
+  const cloudwatch = new CloudWatchLogsClient({ region })
 
   const taskId = taskArn.split("/").at(-1)
   const taskSuffix = `${taskName}/${taskId}`
