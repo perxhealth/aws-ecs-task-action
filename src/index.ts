@@ -70,7 +70,7 @@ async function run(): Promise<void> {
     // start the containers
     await core.group("Starting tasks...", async () => {
       const { tasks = [], failures = [] } = await ecs.runTask({
-        cluster: "dev",
+        cluster: env,
         taskDefinition: taskDefinition?.taskDefinitionArn,
         networkConfiguration: {
           awsvpcConfiguration: {
@@ -118,7 +118,7 @@ async function run(): Promise<void> {
         const logController = new AbortController()
 
         tailTaskLogs({
-          groupName: "/ecs/dev/perx-api",
+          groupName: `/ecs/${env}/perx-api`,
           streamPrefix: "perx-api",
           taskName: "perx-api",
           taskArn: taskArns[0],
@@ -127,7 +127,7 @@ async function run(): Promise<void> {
         })
 
         await backOff(() =>
-          waitUntilTasksStopped({ client: ecs, cluster: "dev", taskArns })
+          waitUntilTasksStopped({ client: ecs, cluster: env, taskArns })
         )
 
         // no longer poll for logs and let the process exit
@@ -140,7 +140,7 @@ async function run(): Promise<void> {
         const taskDescriptions = await ecs.send(
           new DescribeTasksCommand({
             tasks: taskArns,
-            cluster: "dev",
+            cluster: env,
           })
         )
 
