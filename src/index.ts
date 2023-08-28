@@ -12,33 +12,7 @@ import {
 } from "@aws-sdk/client-ecs"
 
 import { tailTaskLogs } from "./logs"
-
-interface WaiterParams {
-  client: ECS
-  cluster: string
-  taskArns: string[]
-}
-
-async function waitUntilTasksStopped(params: WaiterParams): Promise<void> {
-  const taskDescriptions = await params.client.send(
-    new DescribeTasksCommand({
-      tasks: params.taskArns,
-      cluster: params.cluster,
-    })
-  )
-
-  return new Promise((resolve, reject) => {
-    const isStopped = taskDescriptions.tasks?.every(
-      (task) => task.lastStatus === "STOPPED"
-    )
-
-    if (isStopped) {
-      resolve()
-    } else {
-      reject()
-    }
-  })
-}
+import { waitUntilTasksStopped } from "./util"
 
 async function run(): Promise<void> {
   try {
