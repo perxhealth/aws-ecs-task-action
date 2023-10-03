@@ -21,6 +21,7 @@ function waitUntilTasksStopped(params) {
             var _a;
             const isStopped = (_a = taskDescriptions.tasks) === null || _a === void 0 ? void 0 : _a.every((task) => {
                 console.log(`Status: ${task.lastStatus}`);
+                console.log(`Desired: ${task.desiredStatus}`);
                 return task.lastStatus === "STOPPED";
             });
             if (isStopped) {
