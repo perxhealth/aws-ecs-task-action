@@ -134,7 +134,7 @@ function run() {
                         region: awsRegion,
                         signal: logController.signal,
                     });
-                    yield (0, exponential_backoff_1.backOff)(() => (0, util_1.waitUntilTasksStopped)({ client: ecs, cluster: env, taskArns }), { delayFirstAttempt: true, maxDelay: 10000 });
+                    yield (0, exponential_backoff_1.backOff)(() => (0, util_1.waitUntilTasksStopped)({ client: ecs, cluster: env, taskArns }), { delayFirstAttempt: true, maxDelay: 10000, numOfAttempts: 1000 });
                     // no longer poll for logs and let the process exit
                     logController.abort();
                 }));

@@ -130,7 +130,7 @@ async function run(): Promise<void> {
 
         await backOff(
           () => waitUntilTasksStopped({ client: ecs, cluster: env, taskArns }),
-          { delayFirstAttempt: true, maxDelay: 10000 }
+          { delayFirstAttempt: true, maxDelay: 10000, numOfAttempts: 1000 }
         )
 
         // no longer poll for logs and let the process exit
