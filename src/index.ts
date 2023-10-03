@@ -59,9 +59,7 @@ async function run(): Promise<void> {
       await ecs.registerTaskDefinition(config).then((result) => {
         if (result.taskDefinition) {
           taskDefinition = result.taskDefinition
-          core.info(
-            `Successfully registered task definition: ${taskDefinition.taskDefinitionArn}`
-          )
+          core.info(`Success! ${taskDefinition.taskDefinitionArn}`)
           core.setOutput(
             "task-definition-arn",
             taskDefinition.taskDefinitionArn
@@ -159,7 +157,12 @@ async function run(): Promise<void> {
         if (containers.every((container) => container.exitCode === 0)) {
           core.info("All tasks completed successfully!")
         } else {
-          core.setFailed("Some tasks exited with a non 0 code")
+          const codes = containers.map(
+            (container) => container.exitCode || "N/A"
+          )
+          core.setFailed(
+            `Some tasks exited with a non 0 code: ${codes.join(", ")}`
+          )
         }
       })
     }
