@@ -72,9 +72,11 @@ function run() {
             // read task definition from local disk and register it with aws
             yield core.group("Registering task definition...", () => __awaiter(this, void 0, void 0, function* () {
                 const source = fs_1.default.readFileSync(taskDefPath).toString();
-                yield ecs.registerTaskDefinition(JSON.parse(source)).then((result) => {
+                const config = JSON.parse(source);
+                yield ecs.registerTaskDefinition(config).then((result) => {
                     if (result.taskDefinition) {
                         taskDefinition = result.taskDefinition;
+                        core.info(`Successfully registered task definition: ${taskDefinition.taskDefinitionArn}`);
                         core.setOutput("task-definition-arn", taskDefinition.taskDefinitionArn);
                     }
                     else {

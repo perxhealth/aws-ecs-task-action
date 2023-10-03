@@ -55,9 +55,13 @@ async function run(): Promise<void> {
     // read task definition from local disk and register it with aws
     await core.group("Registering task definition...", async () => {
       const source = fs.readFileSync(taskDefPath).toString()
-      await ecs.registerTaskDefinition(JSON.parse(source)).then((result) => {
+      const config = JSON.parse(source)
+      await ecs.registerTaskDefinition(config).then((result) => {
         if (result.taskDefinition) {
           taskDefinition = result.taskDefinition
+          core.info(
+            `Successfully registered task definition: ${taskDefinition.taskDefinitionArn}`
+          )
           core.setOutput(
             "task-definition-arn",
             taskDefinition.taskDefinitionArn
