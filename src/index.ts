@@ -128,8 +128,9 @@ async function run(): Promise<void> {
           signal: logController.signal,
         })
 
-        await backOff(() =>
-          waitUntilTasksStopped({ client: ecs, cluster: env, taskArns })
+        await backOff(
+          () => waitUntilTasksStopped({ client: ecs, cluster: env, taskArns }),
+          { delayFirstAttempt: true, maxDelay: 10000 }
         )
 
         // no longer poll for logs and let the process exit

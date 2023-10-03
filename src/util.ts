@@ -17,13 +17,9 @@ export async function waitUntilTasksStopped(
   )
 
   return new Promise((resolve, reject) => {
-    const isStopped = taskDescriptions.tasks?.every(
-      (task) => {
-        console.log(`Status: ${task.lastStatus}`)
-        console.log(`Desired: ${task.desiredStatus}`)
-        return task.lastStatus === "STOPPED"
-      }
-    )
+    const isStopped = taskDescriptions.tasks?.every((task) => {
+      return task.lastStatus === "STOPPED" || task.desiredStatus === "STOPPED"
+    })
 
     if (isStopped) {
       resolve()

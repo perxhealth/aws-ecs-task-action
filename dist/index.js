@@ -134,7 +134,7 @@ function run() {
                         region: awsRegion,
                         signal: logController.signal,
                     });
-                    yield (0, exponential_backoff_1.backOff)(() => (0, util_1.waitUntilTasksStopped)({ client: ecs, cluster: env, taskArns }));
+                    yield (0, exponential_backoff_1.backOff)(() => (0, util_1.waitUntilTasksStopped)({ client: ecs, cluster: env, taskArns }), { delayFirstAttempt: true, maxDelay: 10000 });
                     // no longer poll for logs and let the process exit
                     logController.abort();
                 }));
@@ -259,9 +259,7 @@ function waitUntilTasksStopped(params) {
         return new Promise((resolve, reject) => {
             var _a;
             const isStopped = (_a = taskDescriptions.tasks) === null || _a === void 0 ? void 0 : _a.every((task) => {
-                console.log(`Status: ${task.lastStatus}`);
-                console.log(`Desired: ${task.desiredStatus}`);
-                return task.lastStatus === "STOPPED";
+                return task.lastStatus === "STOPPED" || task.desiredStatus === "STOPPED";
             });
             if (isStopped) {
                 resolve();
