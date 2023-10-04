@@ -93,6 +93,15 @@ async function run(): Promise<void> {
         core.info(`${failures.length} tasks failed to start`)
       }
 
+      if (failures.length > 0) {
+        core.info("Some tasks failed to start")
+        failures.forEach((failure) => {
+          core.info(`ARN: ${failure.arn}`)
+          core.info(`Reason: ${failure.reason}`)
+          core.info(`Detail: ${failure.detail}`)
+        })
+      }
+
       core.setOutput("tasks-started-count", tasks.length)
       core.setOutput("tasks-started-failed-count", failures.length)
       startedTasks = tasks
