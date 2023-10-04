@@ -25,7 +25,7 @@ As an example, add the following `step` to a GitHub Actions workflow.
 
 ### Inputs
 
-The Action currently expects four required inputs, and no further optional
+The Action currently expects five required inputs, and no further optional
 inputs.
 
 **NOTE**: Input names are underscores, not hyphenated.
@@ -48,6 +48,10 @@ inputs.
 
     Location on disk from where the task definition file can be read. This
     is the task definition which is then registered with ECS.
+
+5. `launch_type`
+
+    Define whether your task should launch in to EC2, FARGATE or EXTERNAL
 
 ### Outputs
 
