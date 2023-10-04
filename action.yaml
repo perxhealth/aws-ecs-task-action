@@ -31,6 +31,14 @@ inputs:
   definition:
     description: Path on local disk at which your .json task definition exists
     required: true
+  launch_type:
+    type: choice
+    description: Defines whether your task is launched in to EC2, Fargate or Externally
+    required: true
+    options:
+      - EC2
+      - FARGATE
+      - EXTERNAL
   subnets:
     description: AWS VPC subnets in which the task runs, formatted as a comma delimited string
     required: false

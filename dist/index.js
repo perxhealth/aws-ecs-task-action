@@ -86,10 +86,12 @@ function run() {
             }));
             // start the containers
             yield core.group("Starting tasks...", () => __awaiter(this, void 0, void 0, function* () {
-                const securityGroups = core.getInput("security_groups") || "";
-                const subnets = core.getInput("subnets") || "";
+                const launchType = core.getInput("launch_type", { required: true });
+                const subnets = core.getInput("subnets", { required: true });
+                const securityGroups = core.getInput("security_groups", { required: true });
                 const { tasks = [], failures = [] } = yield ecs.runTask({
                     cluster: env,
+                    launchType: launchType,
                     taskDefinition: taskDefinition === null || taskDefinition === void 0 ? void 0 : taskDefinition.taskDefinitionArn,
                     networkConfiguration: {
                         awsvpcConfiguration: {
