@@ -70,14 +70,14 @@ function run() {
             let taskDefinition;
             let startedTasks = [];
             const source = fs_1.default.readFileSync(taskDefPath).toString();
-            const config = JSON.parse(source);
             // log a preview of the task's definition for debugging purposes
             yield core.group("Preview task definition...", () => __awaiter(this, void 0, void 0, function* () {
-                core.info(config);
+                core.info(source);
                 return Promise.resolve();
             }));
             // read task definition from local disk and register it with aws
             yield core.group("Registering task definition...", () => __awaiter(this, void 0, void 0, function* () {
+                const config = JSON.parse(source);
                 yield ecs.registerTaskDefinition(config).then((result) => {
                     if (result.taskDefinition) {
                         taskDefinition = result.taskDefinition;
