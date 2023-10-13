@@ -74,6 +74,7 @@ function run() {
             // log a preview of the task's definition for debugging purposes
             yield core.group("Preview task definition...", () => __awaiter(this, void 0, void 0, function* () {
                 core.info(config);
+                return Promise.resolve();
             }));
             // read task definition from local disk and register it with aws
             yield core.group("Registering task definition...", () => __awaiter(this, void 0, void 0, function* () {

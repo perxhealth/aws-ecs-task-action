@@ -58,6 +58,7 @@ async function run(): Promise<void> {
     // log a preview of the task's definition for debugging purposes
     await core.group("Preview task definition...", async () => {
       core.info(config)
+      return Promise.resolve()
     })
 
     // read task definition from local disk and register it with aws
