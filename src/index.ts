@@ -46,7 +46,13 @@ async function run(): Promise<void> {
       "`AWS_REGION` is not set in the environment. Has a previous action setup AWS credentials?"
     )
 
-    const awsRegion = region === "au" ? "ap-southeast-2" : "us-east-2"
+    const awsRegionMap: Record<string, string> = {
+      au: "ap-southeast-2",
+      nz: "ap-southeast-2",
+      us: "us-east-2",
+    }
+    const awsRegion = awsRegionMap[region] ?? "ap-southeast-2"
+    const cluster = region === "nz" ? `${env}-nz` : env
     const ecs = new ECS({ region: awsRegion })
 
     let taskDefinition: TaskDefinition
@@ -85,7 +91,7 @@ async function run(): Promise<void> {
       const securityGroups = core.getInput("security_groups", { required: true })
 
       const { tasks = [], failures = [] } = await ecs.runTask({
-        cluster: env,
+        cluster,
         launchType: launchType,
         taskDefinition: taskDefinition?.taskDefinitionArn,
         networkConfiguration: {
@@ -139,7 +145,7 @@ async function run(): Promise<void> {
         const logController = new AbortController()
 
         tailTaskLogs({
-          groupName: `/ecs/${env}/${appName}`,
+          groupName: `/ecs/${cluster}/${appName}`,
           streamPrefix: appName,
           taskName: appName,
           taskArn: taskArns[0],
@@ -148,7 +154,7 @@ async function run(): Promise<void> {
         })
 
         await backOff(
-          () => waitUntilTasksStopped({ client: ecs, cluster: env, taskArns }),
+          () => waitUntilTasksStopped({ client: ecs, cluster, taskArns }),
           { delayFirstAttempt: true, maxDelay: 10000, numOfAttempts: 1000 }
         )
 
@@ -162,7 +168,7 @@ async function run(): Promise<void> {
         const taskDescriptions = await ecs.send(
           new DescribeTasksCommand({
             tasks: taskArns,
-            cluster: env,
+            cluster,
           })
         )
 
