@@ -88,7 +88,9 @@ async function run(): Promise<void> {
       const launchType = core.getInput("launch_type", { required: true })
 
       const subnets = core.getInput("subnets", { required: true })
-      const securityGroups = core.getInput("security_groups", { required: true })
+      const securityGroups = core.getInput("security_groups", {
+        required: true,
+      })
 
       const { tasks = [], failures = [] } = await ecs.runTask({
         cluster,

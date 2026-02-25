@@ -50,6 +50,7 @@ const client_ecs_1 = __nccwpck_require__(20589);
 const logs_1 = __nccwpck_require__(6917);
 const util_1 = __nccwpck_require__(81977);
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // retrieve all required inputs
@@ -65,7 +66,13 @@ function run() {
             (0, assert_1.default)(process.env.AWS_SECRET_ACCESS_KEY, "`AWS_SECRET_ACCESS_KEY` is not set in the environment. Has a previous action setup AWS credentials?");
             // ensure AWS_REGION was picked up from the environment
             (0, assert_1.default)(process.env.AWS_REGION, "`AWS_REGION` is not set in the environment. Has a previous action setup AWS credentials?");
-            const awsRegion = region === "au" ? "ap-southeast-2" : "us-east-2";
+            const awsRegionMap = {
+                au: "ap-southeast-2",
+                nz: "ap-southeast-2",
+                us: "us-east-2",
+            };
+            const awsRegion = (_a = awsRegionMap[region]) !== null && _a !== void 0 ? _a : "ap-southeast-2";
+            const cluster = region === "nz" ? `${env}-nz` : env;
             const ecs = new client_ecs_1.ECS({ region: awsRegion });
             let taskDefinition;
             let startedTasks = [];
@@ -95,7 +102,7 @@ function run() {
                 const subnets = core.getInput("subnets", { required: true });
                 const securityGroups = core.getInput("security_groups", { required: true });
                 const { tasks = [], failures = [] } = yield ecs.runTask({
-                    cluster: env,
+                    cluster,
                     launchType: launchType,
                     taskDefinition: taskDefinition === null || taskDefinition === void 0 ? void 0 : taskDefinition.taskDefinitionArn,
                     networkConfiguration: {
@@ -142,14 +149,14 @@ function run() {
                     // prepare an abort controller to toggle off CloudWatch tailing
                     const logController = new AbortController();
                     (0, logs_1.tailTaskLogs)({
-                        groupName: `/ecs/${env}/${appName}`,
+                        groupName: `/ecs/${cluster}/${appName}`,
                         streamPrefix: appName,
                         taskName: appName,
                         taskArn: taskArns[0],
                         region: awsRegion,
                         signal: logController.signal,
                     });
-                    yield (0, exponential_backoff_1.backOff)(() => (0, util_1.waitUntilTasksStopped)({ client: ecs, cluster: env, taskArns }), { delayFirstAttempt: true, maxDelay: 10000, numOfAttempts: 1000 });
+                    yield (0, exponential_backoff_1.backOff)(() => (0, util_1.waitUntilTasksStopped)({ client: ecs, cluster, taskArns }), { delayFirstAttempt: true, maxDelay: 10000, numOfAttempts: 1000 });
                     // no longer poll for logs and let the process exit
                     logController.abort();
                 }));
@@ -158,7 +165,7 @@ function run() {
                 yield core.group("Resolving results of STOPPED tasks...", () => __awaiter(this, void 0, void 0, function* () {
                     const taskDescriptions = yield ecs.send(new client_ecs_1.DescribeTasksCommand({
                         tasks: taskArns,
-                        cluster: env,
+                        cluster,
                     }));
                     if (!taskDescriptions.tasks) {
                         throw new Error("Could not retrieve stopped tasks");
